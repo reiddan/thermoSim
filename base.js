@@ -540,8 +540,12 @@ function showPrompt(newSectionIdx, newPromptIdx, forceReset){
 		
 		emptyListener(curLevel, 'sectionCleanUp');
 		emptyListener(curLevel, 'sectionCondition');
-		
-		renderer.render(newSection.setup);
+		//attn - once setup is out of use, remove the condition that checks for it
+		if (newSection.setup) {
+			renderer.render(newSection.setup);
+		} else {
+			renderer.render(newSection.sceneData);
+		}
 
 		
 		addListener(curLevel, 'sectionCleanUp', 'removeArrowAndText',
@@ -552,7 +556,11 @@ function showPrompt(newSectionIdx, newPromptIdx, forceReset){
 		this);
 		curLevel.delayGraphs();
 	}
-	renderer.render(newPrompt.setup);
+	if (newPrompt.setup) {
+		renderer.render(newPrompt.setup);
+	} else {
+		renderer.render(newPrompt.sceneData);
+	}
 
 	if (!newPrompt.quiz) {
 		$('#nextPrevDiv').show();
@@ -694,7 +702,7 @@ function checkWillAdvanceQuiz(){
 	//isCorrect will alert for wrong answers and maybe for no answer (if text box, I guess)
 	var allCorrect = 1;
 	var quiz = curLevel.quiz;
-	if (quiz.length>0) {
+	if (quiz && quiz.length>0) {
 		if (!quiz.allAnswered()) {
 			alert("You haven't answered all the questions");
 			return 0;
@@ -718,13 +726,12 @@ function prevPrompt(){
 
 /*
 Ahem, I am redefining how get, eval, and img are done.  
-get(idStr, type ('int', 'float', 'string'), default, min, max, 
+get(idStr, type ('int', 'float', 'string'), default, min, max)
 eval(expr, decPlaces, default, min, max)
 img(path, breakStyle (p, br), center (boolean))
 */
 
 function addStored(text) {
-	//if you EVER find a way to do regexp lookbehinds, use it here.  
 	return text.replace(/get[\s]*\([A-Za-z0-9,\s\-\.]*\)/g, function(subStr, idx) {
 		var args = sliceArgs(subStr);
 		var idStr = args[0];
@@ -801,7 +808,7 @@ function addImgs(text){
 		var path = args[0];
 		var breakStyle = args[1];
 		var center = args[2];
-		var imgHTML = templater.img({attrs: {src: [path], 'class': [globalHTMLClass]}});
+		var imgHTML = templater.img({attrs: {src: [path]}});
 		
 		if (center) {
 			imgHTML = templater.center({innerHTML: ingHTML});
